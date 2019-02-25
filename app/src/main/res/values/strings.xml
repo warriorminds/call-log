@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CallLog</string>
+    <string name="settings">Settings</string>
+    <string name="permissions_denied">You must accept Call Log permission. Go to Settings to enable it.</string>
+</resources>
