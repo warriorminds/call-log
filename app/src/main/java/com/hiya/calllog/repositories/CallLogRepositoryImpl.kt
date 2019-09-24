@@ -9,11 +9,13 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 class CallLogRepositoryImpl @Inject constructor(private val context: Context) : CallLogRepository {
-    override fun getCallLogs(callback: (List<CallLog>) -> Unit) {
-        val callLogs = mutableListOf<CallLog>()
+    override fun getCallLogs(callback: (MutableMap<String, List<CallLog>>) -> Unit) {
+        val callLogs = mutableMapOf<String, List<CallLog>>()
 
         launch (UI) {
             val cursorLoader = CursorLoader(context, android.provider.CallLog.Calls.CONTENT_URI,
@@ -31,12 +33,30 @@ class CallLogRepositoryImpl @Inject constructor(private val context: Context) : 
                 val typeIndex = it.getColumnIndex(android.provider.CallLog.Calls.TYPE)
 
                 while (it.moveToNext() && callLogs.size < 50) {
+                    val date = Date(it.getString(dateIndex).toLong())
+                    val format = SimpleDateFormat("dd")
+                    val currentDay = format.format(date)
+
+                    val today = format.format(Date())
+                    var key : String? = null
+                    if (currentDay.toInt() == today.toInt()) {
+                        key = "today"
+                    } else if (currentDay.toInt() == today.toInt() - 1) {
+                        key = "yesterday"
+                    } else {
+                        key = "otherDay"
+                    }
+
                     val log = CallLog(
                         it.getString(numberIndex),
                         it.getString(dateIndex).getReadableDate(),
                         it.getInt(typeIndex).getCallType()
                     )
-                    callLogs.add(log)
+                    if (callLogs[key] != null) {
+                        (callLogs[key] as ArrayList<CallLog>).add(log)
+                    } else {
+                        callLogs[key] = mutableListOf(log)
+                    }
                 }
             }
             callback(callLogs)

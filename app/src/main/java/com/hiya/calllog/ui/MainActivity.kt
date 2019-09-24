@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
             callLogAdapter.setCallLogs(it!!)
         })
         checkPermissions()
+
         registerReceiver(callReceiver, IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL))
         registerReceiver(callReceiver, IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED))
     }
@@ -79,7 +80,7 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
             CALL_LOG_PERMISSION_REQUEST -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     viewModel.getCallLog()
-                } else {
+                } else if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED){
                     Snackbar.make(rv_call_log, getString(R.string.permissions_denied), Snackbar.LENGTH_INDEFINITE)
                         .setAction(getString(R.string.settings)) {
                             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
